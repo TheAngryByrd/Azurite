@@ -12,7 +12,7 @@ const defaultID: string = "DefaultID";
 // see: https://learn.microsoft.com/en-us/rest/api/storageservices/table-service-error-codes
 export default class StorageErrorFactory {
 
-  static getBatchDuplicateRowKey(context: Context, rowKey: string) : StorageError{
+  static getBatchDuplicateRowKey(context: Context, rowKey: string): StorageError {
     return new StorageError(
       400,
       "InvalidDuplicateRow",
@@ -39,6 +39,21 @@ export default class StorageErrorFactory {
       context
     );
   }
+
+  public static getThrottling(
+    context: Context,
+    apiVersion?: string
+  ): StorageError {
+    return new StorageError(
+      503,
+      "ServerBusy",
+      "Egress is over the account limit.",
+      context.contextID || defaultID,
+      undefined,
+      context
+    );
+  }
+
 
   public static getInvalidAPIVersion(
     context: Context,

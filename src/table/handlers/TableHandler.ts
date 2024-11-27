@@ -1,5 +1,6 @@
 import toReadableStream from "to-readable-stream";
 
+import * as fs from "fs";
 import BufferStream from "../../common/utils/BufferStream";
 import {
   isEtagValid,
@@ -129,10 +130,23 @@ export default class TableHandler extends BaseHandler implements ITableHandler {
     return response;
   }
 
+  private async checkThrottling(context: Context) {
+    const file = await fs.promises.readFile("C:\\Users\\jimmy\\Repositories\\public\\TheAngryByrd\\Azurite\\throttle.json", 'utf-8')
+    const throttle = JSON.parse(file).throttle;
+    if (throttle) {
+      throw StorageErrorFactory.getThrottling(context);
+    }
+  }
+
   public async query(
     options: Models.TableQueryOptionalParams,
     context: Context
   ): Promise<Models.TableQueryResponse2> {
+
+
+    await this.checkThrottling(context);
+
+
     const tableContext = new TableStorageContext(context);
     const account = this.getAndCheckAccountName(tableContext);
     const accept = this.getAndCheckPayloadFormat(tableContext);
@@ -625,6 +639,8 @@ export default class TableHandler extends BaseHandler implements ITableHandler {
     options: Models.TableQueryEntitiesOptionalParams,
     context: Context
   ): Promise<Models.TableQueryEntitiesResponse> {
+
+    await this.checkThrottling(context);
     const tableContext = new TableStorageContext(context);
     const table = this.getAndCheckTableName(tableContext);
     const account = this.getAndCheckAccountName(tableContext);
@@ -729,6 +745,8 @@ export default class TableHandler extends BaseHandler implements ITableHandler {
     options: Models.TableQueryEntitiesWithPartitionAndRowKeyOptionalParams,
     context: Context
   ): Promise<Models.TableQueryEntitiesWithPartitionAndRowKeyResponse> {
+
+    await this.checkThrottling(context);
     const tableContext = new TableStorageContext(context);
     const account = this.getAndCheckAccountName(tableContext);
     const table = _table ? _table : this.getAndCheckTableName(tableContext);
@@ -1176,8 +1194,8 @@ export default class TableHandler extends BaseHandler implements ITableHandler {
   private removeEtagProperty(
     tableEntityProperties:
       | {
-          [propertyName: string]: any;
-        }
+        [propertyName: string]: any;
+      }
       | undefined
   ): { [propertyName: string]: any } | undefined {
     if (tableEntityProperties) {
